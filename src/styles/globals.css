@@ -1,0 +1,476 @@
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Variables / Design Tokens */
+:root {
+  --bg: #F7FBF9;
+  --surface: #FFFFFF;
+  --text: #0F1724;
+  --accent-bio: #27AE60;
+  --accent-chem: #6C5CE7;
+  --accent-phys: #2B6CB0;
+  --accent-math: #FF6B6B;
+  --accent-social: #F59E0B;
+  
+  /* Extended color palette */
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+}
+
+/* Base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.6;
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+/* Typography */
+.font-inter {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.font-poppins {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Theme colors */
+.bg-primary-bg {
+  background-color: var(--bg);
+}
+
+.bg-surface {
+  background-color: var(--surface);
+}
+
+.text-primary-text {
+  color: var(--text);
+}
+
+.text-accent-bio {
+  color: var(--accent-bio);
+}
+
+.text-accent-chem {
+  color: var(--accent-chem);
+}
+
+.text-accent-phys {
+  color: var(--accent-phys);
+}
+
+.text-accent-math {
+  color: var(--accent-math);
+}
+
+.text-accent-social {
+  color: var(--accent-social);
+}
+
+.bg-accent-bio {
+  background-color: var(--accent-bio);
+}
+
+.bg-accent-chem {
+  background-color: var(--accent-chem);
+}
+
+.bg-accent-phys {
+  background-color: var(--accent-phys);
+}
+
+.bg-accent-math {
+  background-color: var(--accent-math);
+}
+
+.bg-accent-social {
+  background-color: var(--accent-social);
+}
+
+.from-accent-bio {
+  --tw-gradient-from: var(--accent-bio);
+}
+
+.to-accent-bio {
+  --tw-gradient-to: var(--accent-bio);
+}
+
+.from-accent-chem {
+  --tw-gradient-from: var(--accent-chem);
+}
+
+.to-accent-chem {
+  --tw-gradient-to: var(--accent-chem);
+}
+
+.from-accent-phys {
+  --tw-gradient-from: var(--accent-phys);
+}
+
+.to-accent-phys {
+  --tw-gradient-to: var(--accent-phys);
+}
+
+.from-accent-math {
+  --tw-gradient-from: var(--accent-math);
+}
+
+.to-accent-math {
+  --tw-gradient-to: var(--accent-math);
+}
+
+.from-accent-social {
+  --tw-gradient-from: var(--accent-social);
+}
+
+.to-accent-social {
+  --tw-gradient-to: var(--accent-social);
+}
+
+/* Component styles */
+.nav-link {
+  @apply text-gray-600 hover:text-primary-text transition-colors duration-200 font-medium;
+}
+
+.nav-link.active {
+  @apply text-gray-800 border-b-2 border-gray-500 pb-1;
+}
+
+/* Force remove green borders from navigation links */
+.nav-link,
+.nav-link:hover,
+.nav-link:focus,
+.nav-link:active {
+  border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+}
+
+/* Only allow bottom border for active state */
+.nav-link.active {
+  border: none !important;
+  border-bottom: 2px solid #6b7280 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+}
+
+/* Remove any green borders from all anchor tags in navigation */
+nav a,
+header a {
+  border-color: transparent !important;
+}
+
+/* Specifically target any elements with green border colors */
+*[style*="border-color: #27AE60"],
+*[style*="border-color: rgb(39, 174, 96)"],
+*[class*="border-accent-bio"],
+a[class*="border-accent-bio"] {
+  border-color: transparent !important;
+}
+
+/* Ultra-specific rules to remove green borders from navigation */
+header nav a,
+header nav a.nav-link,
+header nav a.nav-link:hover,
+header nav a.nav-link:focus,
+header nav a.nav-link:active,
+header nav a.nav-link.active {
+  border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Only allow bottom border for active state */
+header nav a.nav-link.active {
+  border: none !important;
+  border-bottom: 2px solid #6b7280 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+}
+
+.btn-primary {
+  @apply bg-accent-bio text-white px-6 py-3 rounded-xl font-medium hover:bg-green-600 transition-all duration-200 hover:scale-105 hover:shadow-lg;
+}
+
+.btn-secondary {
+  @apply bg-white text-primary-text border-2 border-gray-200 px-6 py-3 rounded-xl font-medium hover:border-accent-bio hover:text-accent-bio transition-all duration-200 hover:scale-105 hover:shadow-lg;
+}
+
+.feature-card {
+  @apply bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2;
+}
+
+.subject-card {
+  @apply bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 min-w-[250px] hover:-translate-y-1 hover:rotate-1;
+}
+
+.testimonial-card {
+  @apply transition-transform duration-300 hover:-translate-y-1;
+}
+
+.profile-preview {
+  @apply animate-fadeIn;
+}
+
+/* Horizontal scroll container */
+.horizontal-scroll-container {
+  @apply overflow-hidden;
+}
+
+.horizontal-scroll {
+  @apply flex gap-6 overflow-x-auto pb-4;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontal-scroll > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Step animation */
+.step-animation {
+  @apply hover:scale-110 transition-transform duration-300;
+}
+
+.step-number {
+  @apply opacity-0 animate-fadeIn;
+  animation-delay: 0.3s;
+}
+
+/* Tree and particle animations */
+.tree-animation {
+  filter: drop-shadow(0 10px 20px rgba(39, 174, 96, 0.2));
+}
+
+.leaves circle {
+  transform-origin: center;
+}
+
+/* Floating animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+@keyframes float-delay {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-15px) rotate(-180deg);
+    opacity: 1;
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-delay {
+  animation: float-delay 3s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-12px) translateX(4px) rotate(1deg);
+  }
+  50% {
+    transform: translateY(-20px) translateX(-2px) rotate(-0.5deg);
+  }
+  75% {
+    transform: translateY(-8px) translateX(6px) rotate(0.5deg);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-float-gentle {
+  animation: float-gentle 15s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
+}
+
+.border-l-3 {
+  border-left-width: 3px;
+}
+
+.translate-x-0\.5 {
+  transform: translateX(0.125rem);
+}
+
+/* Responsive design adjustments */
+@media (max-width: 768px) {
+  .horizontal-scroll {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .subject-card {
+    min-width: 200px;
+  }
+}
+
+/* Accessibility: Respect motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .tree-animation {
+    transform: scale(1) !important;
+    opacity: 1 !important;
+  }
+  
+  .animate-float,
+  .animate-float-delay {
+    animation: none;
+  }
+  
+  .leaves circle animate {
+    animation: none;
+  }
+}
+
+/* Focus states for accessibility - Remove green outline */
+button:focus,
+button:focus-visible,
+a:focus,
+a:focus-visible,
+input:focus,
+input:focus-visible,
+select:focus,
+select:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+  border-radius: 0.375rem;
+}
+
+/* Remove focus outline from navigation buttons specifically */
+button[onclick*="handleTabChange"]:focus,
+button[onclick*="handleTabChange"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove focus outline from all buttons globally */
+button:focus,
+button:focus-visible,
+button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove focus outline from clickable elements */
+[role="button"]:focus,
+[role="button"]:focus-visible,
+[tabindex]:focus,
+[tabindex]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --bg: #FFFFFF;
+    --text: #000000;
+  }
+  
+  .btn-primary {
+    border: 2px solid #000000;
+  }
+  
+  .feature-card,
+  .subject-card,
+  .testimonial-card {
+    border: 1px solid #000000;
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "telangana-visualisation",
+  "version": "1.0.0",
+  "description": "Telangana Districts Visualization with Interactive Map",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=8000 --entry-file=index.html",
+    "start": "live-server --port=8000 --entry-file=index.html",
+    "serve": "http-server -p 8000 -c-1"
+  },
+  "keywords": [
+    "telangana",
+    "visualization",
+    "leaflet",
+    "map",
+    "choropleth"
+  ],
+  "author": "gpavanb1",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "http-server": "^14.1.1"
+  }
+}
+

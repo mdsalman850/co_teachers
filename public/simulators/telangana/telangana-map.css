@@ -1,0 +1,36 @@
+#mapid { width: 500px; height: 500px; }
+.leaflet-container {
+  background: #fff;
+}
+.legend {
+	line-height: 18px;
+	color: #555;
+}
+.legend i {
+	width: 18px;
+	height: 18px;
+	float: left;
+	margin-right: 8px;
+	opacity: 0.7;
+}
+
+.scrollable-menu {
+    height: auto;
+    max-height: 150px;
+    overflow-x: hidden;
+}
+
+.dropdown {
+  left: 200px;
+}
+
+/* Taken from https://www.w3schools.com/bootstrap/tryit.asp */
+#myInput {
+  padding: 20px;
+  margin-top: -6px;
+  border: 0;
+  border-radius: 0;
+  background: #f1f1f1;
+}
+
+div.info.legend.leaflet-control br { clear: both; }
