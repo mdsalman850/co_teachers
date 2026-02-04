@@ -40,6 +40,7 @@ import Chapter10Simulator from './components/Chapter10Simulator';
 import Chapter11Simulator from '../../components/Chapter11Simulator';
 import EconomicSystemSimulator from './components/EconomicSystemSimulator';
 import { GROQ_API_KEY } from './config/api';
+import { modelPapers } from './data/modelPapers';
 
 // Removed FloatingIcon component - no floating background icons
 
@@ -261,26 +262,68 @@ const VideoCard = ({ title, description, delay = 0 }: { title: string, descripti
   </div>
 );
 
-const ModelPaperCard = ({ title, description, year, delay = 0 }: { title: string, description: string, year: string, delay?: number }) => (
+// Badge component for header
+const Badge = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${className}`}>
+    {children}
+  </span>
+);
+
+// 1. Definition for Modal (add before App)
+const PaperPreviewModal = ({ filename, onClose }: { filename: string, onClose: () => void }) => (
+  <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col animate-fade-in transition-all duration-500">
+    <div className="flex items-center justify-between p-4 bg-stone-900/95 text-white border-b border-stone-800 shadow-xl">
+      <h3 className="text-lg font-semibold truncate flex-1 tracking-wide">{filename}</h3>
+      <button
+        onClick={onClose}
+        className="p-2 hover:bg-stone-800 rounded-full transition-all duration-300 hover:rotate-90 active:scale-95"
+      >
+        <X size={24} />
+      </button>
+    </div>
+    <div className="flex-1 bg-stone-800 relative animate-slide-up-fade">
+      <iframe
+        src={`/model_papers/${filename}`}
+        className="w-full h-full border-none"
+        title="PDF Preview"
+      />
+    </div>
+  </div>
+);
+
+// 2. Updated ModelPaperCard
+const ModelPaperCard = ({ title, description, year, filename, onPreview, delay = 0 }: { title: string, description: string, year: string, filename: string, onPreview: () => void, delay?: number }) => (
   <div
-    className="bg-white rounded-lg shadow-md border border-stone-200 p-6 transition-all duration-300 hover:shadow-lg hover:scale-105 transform animate-fade-in opacity-0"
+    className="group relative bg-white rounded-xl shadow-sm border border-stone-200 p-6 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 overflow-hidden"
     style={{ animationDelay: `${delay}s`, animationFillMode: 'forwards' }}
   >
-    <div className="flex justify-between items-start mb-3">
-      <h3 className="font-semibold text-lg text-amber-800">{title}</h3>
-      <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded text-sm">{year}</span>
+    {/* Top Accent Border */}
+    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-orange-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-700 ease-out"></div>
+
+    <div className="flex justify-between items-start mb-4">
+      <div className="bg-amber-50 p-3 rounded-lg group-hover:bg-amber-100 transition-colors duration-500">
+        <FileText className="text-amber-600 w-6 h-6 transform group-hover:scale-110 transition-transform duration-500" />
+      </div>
+      <span className="bg-stone-100 text-stone-600 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase border border-stone-200 group-hover:border-amber-200 group-hover:text-amber-700 transition-all duration-500">
+        {year}
+      </span>
     </div>
-    <p className="text-stone-600 mb-4">{description}</p>
-    <div className="flex gap-2">
-      <button className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
-        <FileText size={16} />
-        Preview
-      </button>
-      <button className="bg-stone-600 text-white px-4 py-2 rounded-lg hover:bg-stone-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
-        <Download size={16} />
-        Download
-      </button>
-    </div>
+
+    <h3 className="font-bold text-lg text-stone-800 mb-2 group-hover:text-amber-700 transition-colors duration-300 line-clamp-2 min-h-[3.5rem]">
+      {title}
+    </h3>
+
+    <p className="text-stone-500 text-sm mb-6 line-clamp-2 group-hover:text-stone-600 transition-colors duration-300">
+      {description}
+    </p>
+
+    <button
+      onClick={onPreview}
+      className="w-full bg-stone-900 text-white px-4 py-3 rounded-lg hover:bg-gradient-to-r hover:from-amber-600 hover:to-orange-600 transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-md hover:shadow-orange-200 active:scale-95 transform"
+    >
+      <Monitor size={18} />
+      <span>Preview Paper</span>
+    </button>
   </div>
 );
 
@@ -308,6 +351,7 @@ function App() {
   const [activeChapter, setActiveChapter] = useState('ancient-india');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedPaper, setSelectedPaper] = useState<string | null>(null); // New state for PDF preview
   const [expandedSections, setExpandedSections] = useState({
     history: true,
     geography: false,
@@ -496,6 +540,42 @@ function App() {
   }, []);
 
   const renderMainContent = () => {
+    // Model Papers content is now independent of chapters
+    if (activeTab === 'papers') {
+      return (
+        <div className="space-y-8 pb-10">
+          <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-white rounded-2xl p-10 border border-amber-100 shadow-sm text-center">
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-amber-200 rounded-full opacity-20 blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-orange-200 rounded-full opacity-20 blur-3xl"></div>
+
+            <Badge className="mb-4 bg-white/80 backdrop-blur-sm text-amber-700 border-amber-200 px-4 py-1.5 shadow-sm mx-auto w-fit">
+              Exam Preparation
+            </Badge>
+            <h1 className="text-4xl md:text-5xl font-extrabold text-stone-800 mb-4 tracking-tight">
+              Model <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-600">Question Papers</span>
+            </h1>
+            <p className="text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed">
+              Access currated collection of previous year question papers and weekly assessments to boost your exam readiness.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+            {modelPapers.map((paper, index) => (
+              <ModelPaperCard
+                key={paper.id}
+                title={paper.title}
+                description={paper.description}
+                year={paper.year}
+                filename={paper.filename}
+                onPreview={() => setSelectedPaper(paper.filename)}
+                delay={0.1 * (index + 1)}
+              />
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     // Get chapter-specific content
     const getChapterContent = () => {
       switch (activeChapter) {
@@ -3140,6 +3220,14 @@ function App() {
 
   return (
     <div className="h-screen bg-gradient-to-br from-amber-50 via-stone-50 to-orange-50 relative flex flex-col overflow-hidden">
+      {/* PDF Preview Modal */}
+      {selectedPaper && (
+        <PaperPreviewModal
+          filename={selectedPaper}
+          onClose={() => setSelectedPaper(null)}
+        />
+      )}
+
       {/* Background decorations removed for cleaner look */}
 
       {/* Header */}
@@ -3203,16 +3291,6 @@ function App() {
                 Videos
               </button>
               <button
-                onClick={() => handleTabChange('papers')}
-                className={`nav-tab flex items-center gap-2 pb-2 border-b-2 transition-all duration-300 transform hover:scale-105 focus:outline-none ${activeTab === 'papers'
-                  ? 'border-amber-500 text-amber-600'
-                  : 'border-transparent text-stone-600 hover:text-stone-800'
-                  }`}
-              >
-                <FileText size={20} />
-                Model Papers
-              </button>
-              <button
                 onClick={() => handleTabChange('quiz')}
                 className={`nav-tab flex items-center gap-2 pb-2 border-b-2 transition-all duration-300 transform hover:scale-105 focus:outline-none ${activeTab === 'quiz'
                   ? 'border-amber-500 text-amber-600'
@@ -3241,6 +3319,16 @@ function App() {
               >
                 <MessageSquare size={20} />
                 Assistant
+              </button>
+              <button
+                onClick={() => handleTabChange('papers')}
+                className={`nav-tab flex items-center gap-2 pb-2 border-b-2 transition-all duration-300 transform hover:scale-105 focus:outline-none ${activeTab === 'papers'
+                  ? 'border-amber-500 text-amber-600'
+                  : 'border-transparent text-stone-600 hover:text-stone-800'
+                  }`}
+              >
+                <FileText size={20} />
+                Model Papers
               </button>
             </div>
           </div>
