@@ -1,19 +1,22 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyDMwgdZu5cO56s9hC4Yl7Cxpy5ypJfcbyc",
-  authDomain: "login-auth-2d07d.firebaseapp.com",
-  projectId: "login-auth-2d07d",
-  storageBucket: "login-auth-2d07d.firebasestorage.app",
-  messagingSenderId: "446922491548",
-  appId: "1:446922491548:web:eb36a6a1d112eeb83bcf59"
+  apiKey: "AIzaSyCKdb6C8LL_uWzlvR2pVgyY2V77pgwnEUo",
+  authDomain: "coteachers-e5345.firebaseapp.com",
+  projectId: "coteachers-e5345",
+  storageBucket: "coteachers-e5345.firebasestorage.app",
+  messagingSenderId: "211606164055",
+  appId: "1:211606164055:web:2813f0d0d8799e3ecb4912",
+  measurementId: "G-HCXDGGNZ4F"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
