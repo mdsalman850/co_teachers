@@ -1,4 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import lunr from 'lunr';
 import { Send, FileText, Trash2, Loader, MessageSquare, AlertCircle, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { extractPDFText, chunkText, createSearchIndex, searchChunks, Chunk } from '../utils/pdfUtils';
@@ -68,7 +71,7 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
   const [lastRequestTime, setLastRequestTime] = useState<number>(0);
   const [retryCount, setRetryCount] = useState(0);
   const [lastFailedMessage, setLastFailedMessage] = useState<string>('');
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -84,14 +87,14 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
   const detectOtherChapter = (question: string): string | null => {
     const questionLower = question.toLowerCase();
     const currentChapterName = currentChapter.split(' - ')[1] || currentChapter;
-    
+
     // Check each chapter's keywords
     for (const [chapterName, keywords] of Object.entries(CHAPTER_KEYWORDS)) {
       // Skip if it's the current chapter
       if (chapterName === currentChapterName || currentChapter.includes(chapterName)) {
         continue;
       }
-      
+
       // Check if any keyword is mentioned in the question
       for (const keyword of keywords) {
         if (questionLower.includes(keyword.toLowerCase())) {
@@ -99,20 +102,20 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
         }
       }
     }
-    
+
     // Also check for direct chapter name mentions
     for (const chapterName of ALL_CHAPTERS) {
       if (chapterName === currentChapterName || currentChapter.includes(chapterName)) {
         continue;
       }
-      
+
       // Check if chapter name is mentioned (with some flexibility)
       const chapterNameLower = chapterName.toLowerCase();
       if (questionLower.includes(chapterNameLower)) {
         return chapterName;
       }
     }
-    
+
     return null;
   };
 
@@ -176,26 +179,26 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
     const switchChapter = async () => {
       console.log('Switching to chapter:', currentChapter);
       setIsChapterSwitching(true);
-      
+
       // Clear current messages immediately
       setMessages([]);
       setInputMessage('');
       setError('');
-      
+
       // Brief loading state
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // Load the new chapter's chat history from localStorage
       const chapterHistory = loadChatHistoryFromStorage(currentChapter);
       console.log('Chapter history for', currentChapter, ':', chapterHistory);
-      
+
       if (chapterHistory && chapterHistory.messages.length > 0) {
         setMessages(chapterHistory.messages);
         console.log('Loaded', chapterHistory.messages.length, 'messages for', currentChapter);
       } else {
         console.log('No previous history for', currentChapter, '- starting fresh');
       }
-      
+
       setIsChapterSwitching(false);
     };
 
@@ -253,7 +256,7 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
       // Clear previous messages
       setMessages([]);
       onPdfLoaded(true);
-      
+
     } catch (err: any) {
       console.error('PDF processing error:', err);
       setError(`Failed to process PDF: ${err.message}`);
@@ -274,10 +277,10 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
     setMessages([]);
     setInputMessage('');
     setError('');
-    
+
     // Clear current chapter's chat history from localStorage
     localStorage.removeItem(`chat_history_${currentChapter}`);
-    
+
     // Clear timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -287,27 +290,27 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
   const addMessageToHistory = (message: Message) => {
     setMessages(prev => {
       const newMessages = [...prev, message];
-      
+
       // Enforce message limit
       if (newMessages.length > MAX_MESSAGES_PER_CHAPTER) {
         newMessages.splice(0, newMessages.length - MAX_MESSAGES_PER_CHAPTER);
       }
-      
+
       // Save to localStorage immediately
       saveChatHistoryToStorage(currentChapter, newMessages);
-      
+
       // Clear any existing timeout
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      
+
       // Set new timeout to clear history after 10 minutes of inactivity
       timeoutRef.current = setTimeout(() => {
         console.log('Clearing chat history for', currentChapter, 'due to inactivity');
         setMessages([]);
         localStorage.removeItem(`chat_history_${currentChapter}`);
       }, CHAT_HISTORY_TIMEOUT);
-      
+
       return newMessages;
     });
   };
@@ -325,22 +328,22 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
     // Throttle requests to prevent rate limiting
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTime;
-    
+
     if (timeSinceLastRequest < MIN_REQUEST_INTERVAL && lastRequestTime > 0) {
       const remainingTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
       setError(`Please wait ${Math.ceil(remainingTime / 1000)} second(s) before sending another message.`);
-      
+
       // Clear any existing throttle timeout
       if (requestThrottleRef.current) {
         clearTimeout(requestThrottleRef.current);
       }
-      
+
       // Auto-retry after the throttle period
       requestThrottleRef.current = setTimeout(() => {
         setError('');
         handleSendMessage();
       }, remainingTime);
-      
+
       return;
     }
 
@@ -360,7 +363,7 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
     if (detectedChapter) {
       const currentChapterName = currentChapter.split(' - ')[1] || currentChapter;
       const warningMessage = `I can only answer questions about "${currentChapterName}". Please switch to the "${detectedChapter}" chapter to ask questions about it.`;
-      
+
       // Add warning as assistant message
       const warningResponse: Message = { role: 'assistant', content: warningMessage };
       addMessageToHistory(warningResponse);
@@ -372,19 +375,19 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
     try {
       // Search for relevant chunks - increase to 6 for better context
       let relevantChunks = searchChunks(searchIndex, chunks, userMessage, 6);
-      
+
       // Special handling for relationship queries
       const relationshipKeywords = ['part', 'belong', 'include', 'member', 'category', 'type', 'kind'];
-      const hasRelationshipQuery = relationshipKeywords.some(keyword => 
+      const hasRelationshipQuery = relationshipKeywords.some(keyword =>
         userMessage.toLowerCase().includes(keyword)
       );
-      
+
       // Special handling for detailed explanation requests
       const detailKeywords = ['explain', 'detail', 'lines', 'describe', 'tell me about'];
-      const hasDetailRequest = detailKeywords.some(keyword => 
+      const hasDetailRequest = detailKeywords.some(keyword =>
         userMessage.toLowerCase().includes(keyword)
       );
-      
+
       if (hasRelationshipQuery && relevantChunks.length < 3) {
         // For relationship queries, try to find chunks that mention both terms
         const queryWords = userMessage.toLowerCase().split(/\s+/).filter(word => word.length > 2);
@@ -393,17 +396,17 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
           const mentionedTerms = queryWords.filter(word => chunkText.includes(word));
           return mentionedTerms.length >= 2; // Chunks that mention multiple query terms
         });
-        
+
         // Add additional chunks if we found any
         if (additionalChunks.length > 0) {
           relevantChunks = [...relevantChunks, ...additionalChunks.slice(0, 3)];
           // Remove duplicates
-          relevantChunks = relevantChunks.filter((chunk, index, self) => 
+          relevantChunks = relevantChunks.filter((chunk, index, self) =>
             index === self.findIndex(c => c.id === chunk.id)
           );
         }
       }
-      
+
       // For detailed requests, try to find more related chunks
       if (hasDetailRequest && relevantChunks.length < 4) {
         const queryWords = userMessage.toLowerCase().split(/\s+/).filter(word => word.length > 2);
@@ -411,12 +414,12 @@ const PDFChatRAG: React.FC<PDFChatRAGProps> = ({ apiKey, currentChapter, pdfFile
           const chunkText = chunk.text.toLowerCase();
           return queryWords.some(word => chunkText.includes(word));
         });
-        
+
         // Add additional chunks if we found any
         if (additionalChunks.length > 0) {
           relevantChunks = [...relevantChunks, ...additionalChunks.slice(0, 4)];
           // Remove duplicates
-          relevantChunks = relevantChunks.filter((chunk, index, self) => 
+          relevantChunks = relevantChunks.filter((chunk, index, self) =>
             index === self.findIndex(c => c.id === chunk.id)
           );
         }
@@ -465,19 +468,25 @@ CRITICAL RULE - CHAPTER RESTRICTION:
 - This is a strict rule - you must only respond with the warning message and nothing else
 
 FORMATTING REQUIREMENTS (CRITICAL):
-- NEVER use markdown symbols like #, ##, ###, *, **, or any markdown formatting
-- NEVER use asterisks (*) or double asterisks (**) for emphasis
-- NEVER use hash symbols (#) for headings
-- Use plain text formatting only
-- For headings, use ALL CAPS or Title Case without any symbols
-- For emphasis, use CAPITAL LETTERS or simply bold language
-- Use simple bullet points with dashes (-) or numbers (1. 2. 3.)
-- Use clear paragraph breaks and spacing
-- Format like a textbook or study guide with clean, readable text
-- Structure answers with clear sections and logical flow
-- Use visual hierarchy with spacing and indentation
-- Include relevant examples and explanations
-- Make answers comprehensive but easy to read
+- USE MARKDOWN FORMATTING for all responses
+- Use **bold** for key terms and important concepts
+- Use # or ## for main headings to organize the answer
+- Use ### for subheadings
+- Use bullet points (-) for lists
+- Use numbered lists (1. 2. 3.) for steps or sequential items
+- Use > blockquotes for important summaries or definitions
+- Format the answer to be visually engaging and easy to read
+- Use clear paragraph breaks
+- Use table markdown if comparing items
+
+EXAMPLE OF CORRECT FORMATTING:
+# Ancient India Key Features
+
+## Indus Valley Civilization
+- **Urban Planning**: Smart cities with drainage
+- **Trade**: Seals found in Mesopotamia
+
+> **Summary**: It was a highly advanced civilization.
 
 EXAMPLE OF CORRECT FORMATTING:
 Instead of: "### Ancient India **Key Features:** *Indus Valley Civilization*"
@@ -505,18 +514,12 @@ ${prompt}`
         max_tokens: 1024,
         temperature: 0.3
       });
-      
+
       // Clean up any markdown formatting that might have slipped through
-      const cleanResponse = response
-        .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold** formatting
-        .replace(/\*(.*?)\*/g, '$1') // Remove *italic* formatting
-        .replace(/### (.*?)$/gm, '$1') // Remove ### headings
-        .replace(/## (.*?)$/gm, '$1') // Remove ## headings
-        .replace(/# (.*?)$/gm, '$1') // Remove # headings
-        .replace(/^\s*[-*+]\s+/gm, '- ') // Standardize bullet points
-        .replace(/^\s*\d+\.\s+/gm, (match) => match) // Keep numbered lists
-        .trim();
-      
+      // Clean up any markdown formatting that might have slipped through
+      // REMOVED stripping code to allow Markdown
+      const cleanResponse = response.trim();
+
       // Add assistant response to chat
       const assistantMessage: Message = { role: 'assistant', content: cleanResponse };
       addMessageToHistory(assistantMessage);
@@ -525,15 +528,15 @@ ${prompt}`
       console.error('Chat error:', err);
       const errorMessage = err.message || 'Failed to get response';
       setError(errorMessage);
-      
+
       // Store the failed message for retry
-      const userMessage = messages.length > 0 && messages[messages.length - 1]?.role === 'user' 
-        ? messages[messages.length - 1].content 
+      const userMessage = messages.length > 0 && messages[messages.length - 1]?.role === 'user'
+        ? messages[messages.length - 1].content
         : '';
       if (userMessage) {
         setLastFailedMessage(userMessage);
       }
-      
+
       // If it's a rate limit error, allow manual retry
       if (errorMessage.includes('Rate limit exceeded') || errorMessage.includes('429')) {
         setRetryCount(prev => prev + 1);
@@ -548,24 +551,24 @@ ${prompt}`
 
   const handleRetryMessage = async () => {
     if (isLoading) return;
-    
+
     // Find the last user message to retry
-    const lastUserMessage = messages.length > 0 
-      ? messages.filter(m => m.role === 'user').pop()?.content 
+    const lastUserMessage = messages.length > 0
+      ? messages.filter(m => m.role === 'user').pop()?.content
       : lastFailedMessage;
-    
+
     if (!lastUserMessage) return;
-    
+
     setError('');
     setRetryCount(0);
-    
+
     // Wait before retrying to avoid immediate rate limit
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     // Set message and trigger send
     setInputMessage(lastUserMessage);
     setLastRequestTime(0); // Reset throttle
-    
+
     // Small delay to ensure state update, then send
     setTimeout(() => {
       handleSendMessage();
@@ -583,7 +586,7 @@ ${prompt}`
   if (isExtracting || isChapterSwitching) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -596,8 +599,8 @@ ${prompt}`
             {isChapterSwitching ? 'Switching Chapter' : 'Loading Learning Assistant'}
           </h2>
           <p className="text-gray-600 text-lg leading-relaxed">
-            {isChapterSwitching 
-              ? `Loading ${currentChapter} chat history...` 
+            {isChapterSwitching
+              ? `Loading ${currentChapter} chat history...`
               : 'Processing your social studies content. This may take a moment...'
             }
           </p>
@@ -610,7 +613,7 @@ ${prompt}`
   if (error && !isExtracting) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -653,7 +656,7 @@ ${prompt}`
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin">
         {messages.length === 0 && !isLoading && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -680,7 +683,7 @@ ${prompt}`
               transition={{ duration: 0.3, delay: index * 0.1 }}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`max-w-3xl ${message.role === 'user' ? 'message-user' : 'message-assistant'} px-6 py-4 message-fade-in`}>
+              <div className={`max-w-5xl ${message.role === 'user' ? 'message-user' : 'message-assistant'} px-6 py-4 message-fade-in`}>
                 <div className="flex items-start space-x-3">
                   {message.role === 'assistant' && (
                     <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 shadow-md">
@@ -688,9 +691,31 @@ ${prompt}`
                     </div>
                   )}
                   <div className="flex-1">
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                      {message.content}
-                    </p>
+                    <div className="text-sm leading-relaxed overflow-hidden">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          p: ({ node, ...props }) => <p className="mb-3 text-gray-800" {...props} />,
+                          h1: ({ node, ...props }) => <h1 className="text-xl font-bold text-blue-900 mt-4 mb-2" {...props} />,
+                          h2: ({ node, ...props }) => <h2 className="text-lg font-bold text-gray-900 mt-3 mb-2" {...props} />,
+                          h3: ({ node, ...props }) => <h3 className="text-base font-bold text-gray-800 mt-2 mb-1" {...props} />,
+                          ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-3 space-y-1" {...props} />,
+                          ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-3 space-y-1" {...props} />,
+                          li: ({ node, ...props }) => <li className="text-gray-800" {...props} />,
+                          strong: ({ node, ...props }) => <strong className="font-bold text-blue-700" {...props} />,
+                          blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-orange-300 pl-4 py-1 my-3 bg-orange-50 italic text-gray-700 rounded-r" {...props} />,
+                          code: ({ node, ...props }) => <code className="bg-gray-100 rounded px-1 py-0.5 text-sm font-mono text-red-600" {...props} />,
+                          table: ({ node, ...props }) => <div className="overflow-x-auto my-4 mb-6 rounded-lg shadow-sm border border-gray-200"><table className="min-w-full divide-y divide-gray-200" {...props} /></div>,
+                          thead: ({ node, ...props }) => <thead className="bg-gray-50 bg-gradient-to-r from-gray-50 to-gray-100" {...props} />,
+                          tbody: ({ node, ...props }) => <tbody className="bg-white divide-y divide-gray-200" {...props} />,
+                          tr: ({ node, ...props }) => <tr className="hover:bg-gray-50 transition-colors" {...props} />,
+                          th: ({ node, ...props }) => <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-b border-gray-200" {...props} />,
+                          td: ({ node, ...props }) => <td className="px-4 py-3 whitespace-normal text-sm text-gray-700" {...props} />,
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -699,7 +724,7 @@ ${prompt}`
         </AnimatePresence>
 
         {isLoading && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex justify-start"
@@ -728,7 +753,7 @@ ${prompt}`
       {/* Input Area */}
       <div className="border-t border-gray-200 p-6 bg-white shadow-lg">
         {error && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl"
@@ -739,9 +764,9 @@ ${prompt}`
                 {error.includes('Quota exceeded') ? (
                   <p className="text-xs text-red-500 mt-2">
                     Your API quota has been reached. This typically resets daily. Please check your plan at{' '}
-                    <a 
-                      href="https://ai.dev/usage?tab=rate-limit" 
-                      target="_blank" 
+                    <a
+                      href="https://ai.dev/usage?tab=rate-limit"
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="underline hover:text-red-700"
                     >
@@ -755,21 +780,21 @@ ${prompt}`
                   </p>
                 ) : null}
               </div>
-              {(error.includes('Rate limit exceeded') || error.includes('429') || error.includes('temporarily unavailable')) && 
-               !error.includes('Quota exceeded') && (
-                <button
-                  onClick={handleRetryMessage}
-                  disabled={isLoading}
-                  className="ml-4 px-3 py-1.5 text-xs bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
-                >
-                  <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-                  <span>Retry</span>
-                </button>
-              )}
+              {(error.includes('Rate limit exceeded') || error.includes('429') || error.includes('temporarily unavailable')) &&
+                !error.includes('Quota exceeded') && (
+                  <button
+                    onClick={handleRetryMessage}
+                    disabled={isLoading}
+                    className="ml-4 px-3 py-1.5 text-xs bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+                    <span>Retry</span>
+                  </button>
+                )}
             </div>
           </motion.div>
         )}
-        
+
         <div className="flex items-end space-x-4">
           <div className="flex-1 relative">
             <input
@@ -792,7 +817,7 @@ ${prompt}`
             <Send className="w-5 h-5" />
           </button>
         </div>
-        
+
         <div className="mt-3 text-xs text-gray-500 text-center">
           Press Enter to send • Shift + Enter for new line
         </div>

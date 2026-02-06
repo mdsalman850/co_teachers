@@ -2,7 +2,7 @@
 
 // Groq API configuration
 const GROQ_API_BASE = 'https://api.groq.com/openai/v1';
-const DEFAULT_MODEL = 'groq/compound';
+const DEFAULT_MODEL = 'llama-3.1-8b-instant';
 
 // Retry configuration
 const MAX_RETRIES = 3;
@@ -97,17 +97,17 @@ export const callGroq = async (messages: any[], apiKey: string, options: any = {
       if (response.status === 429) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error?.message || '';
-        
+
         // Check if it's a quota exceeded error
         const isQuotaExceeded = errorMessage.toLowerCase().includes('quota exceeded') ||
-                               errorMessage.toLowerCase().includes('rate limit') ||
-                               errorMessage.toLowerCase().includes('too many requests');
-        
+          errorMessage.toLowerCase().includes('rate limit') ||
+          errorMessage.toLowerCase().includes('too many requests');
+
         if (isQuotaExceeded) {
           // Extract retry time if available
           const retryAfterMatch = errorMessage.match(/retry in ([\d.]+)s/i);
           const retryAfter = retryAfterMatch ? parseFloat(retryAfterMatch[1]) * 1000 : null;
-          
+
           // Don't retry quota exceeded errors - they won't resolve until quota resets
           if (attempt === maxRetries) {
             throw new Error(
@@ -118,19 +118,19 @@ export const callGroq = async (messages: any[], apiKey: string, options: any = {
           // Calculate delay for rate limit
           const delay = getRetryDelay(response, attempt, true);
           console.log(`Rate limit hit. Retrying in ${delay}ms (attempt ${attempt}/${maxRetries})...`);
-          
+
           await sleep(delay);
           continue; // Retry the request
         }
-        
+
         // For regular rate limits (temporary), retry with backoff
         const isLastAttempt = attempt === maxRetries;
-        
+
         if (isLastAttempt) {
           // Extract retry time from error message if available
           const retryAfterMatch = errorMessage.match(/retry in ([\d.]+)s/i);
           const retryAfter = retryAfterMatch ? parseFloat(retryAfterMatch[1]) * 1000 : null;
-          
+
           throw new Error(
             `Rate limit exceeded. ${retryAfter ? `Please retry in ${Math.ceil(retryAfter / 1000)} seconds.` : 'Please try again in a moment.'} ${errorMessage}`
           );
@@ -139,7 +139,7 @@ export const callGroq = async (messages: any[], apiKey: string, options: any = {
         // Calculate delay for rate limit
         const delay = getRetryDelay(response, attempt, true);
         console.log(`Rate limit hit. Retrying in ${delay}ms (attempt ${attempt}/${maxRetries})...`);
-        
+
         await sleep(delay);
         continue; // Retry the request
       }
@@ -148,11 +148,11 @@ export const callGroq = async (messages: any[], apiKey: string, options: any = {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error?.message || response.statusText;
-        
+
         // Retry on server errors (5xx) but not on client errors (4xx except 429)
         const isRetryable = response.status >= 500 && response.status < 600;
         const isLastAttempt = attempt === maxRetries;
-        
+
         if (!isRetryable || isLastAttempt) {
           throw new Error(
             `Groq API error (${response.status}): ${errorMessage}`
@@ -162,38 +162,38 @@ export const callGroq = async (messages: any[], apiKey: string, options: any = {
         // Retry with exponential backoff for server errors
         const delay = getRetryDelay(response, attempt, false);
         console.log(`Server error ${response.status}. Retrying in ${delay}ms (attempt ${attempt}/${maxRetries})...`);
-        
+
         await sleep(delay);
         continue; // Retry the request
       }
 
       // Success - parse and return response
       const data = await response.json();
-      
+
       // Check if we have a valid response (OpenAI-compatible format)
       if (!data.choices || data.choices.length === 0) {
         throw new Error('No response generated from Groq API');
       }
 
       const choice = data.choices[0];
-      
+
       if (!choice.message || !choice.message.content) {
         throw new Error('Invalid response format from Groq API');
       }
 
       return choice.message.content.trim();
-      
+
     } catch (error: any) {
       lastError = error;
-      
+
       // Don't retry on certain errors
       if (error.message.includes('401') || error.message.includes('403')) {
         throw new Error('Invalid API key or insufficient permissions');
       }
-      
-      if (error.message.includes('Response blocked') || 
-          error.message.includes('No response generated') ||
-          error.message.includes('Invalid response format')) {
+
+      if (error.message.includes('Response blocked') ||
+        error.message.includes('No response generated') ||
+        error.message.includes('Invalid response format')) {
         throw error; // Don't retry these
       }
 
@@ -214,11 +214,11 @@ export const callGroq = async (messages: any[], apiKey: string, options: any = {
       }
 
       // For other errors, check if it's a retryable error
-      const isRetryable = error.message.includes('500') || 
-                         error.message.includes('502') || 
-                         error.message.includes('503') ||
-                         error.message.includes('429');
-      
+      const isRetryable = error.message.includes('500') ||
+        error.message.includes('502') ||
+        error.message.includes('503') ||
+        error.message.includes('429');
+
       if (isRetryable) {
         const delay = getRetryDelay(lastResponse, attempt, error.message.includes('429'));
         console.log(`Retryable error. Retrying in ${delay}ms (attempt ${attempt}/${maxRetries})...`);
@@ -244,7 +244,7 @@ export const validateApiKey = (apiKey: string) => {
   if (!apiKey || typeof apiKey !== 'string') {
     return false;
   }
-  
+
   // Groq API keys typically start with gsk_ and are ~51 characters
   const keyPattern = /^gsk_[0-9A-Za-z_-]{40,}$/;
   return keyPattern.test(apiKey);

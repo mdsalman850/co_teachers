@@ -39,8 +39,11 @@ import NaturalResourcesSimulator from './components/NaturalResourcesSimulator';
 import Chapter10Simulator from './components/Chapter10Simulator';
 import Chapter11Simulator from '../../components/Chapter11Simulator';
 import EconomicSystemSimulator from './components/EconomicSystemSimulator';
-import { GROQ_API_KEY } from './config/api';
+import QuizGenerator from './components/QuizGenerator';
 import { modelPapers } from './data/modelPapers';
+
+// API Configuration
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
 
 // Removed FloatingIcon component - no floating background icons
 
@@ -362,7 +365,6 @@ function App() {
   const [assistantReply, setAssistantReply] = useState('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isPdfLoaded, setIsPdfLoaded] = useState(false);
-  const [groqApiKey] = useState(GROQ_API_KEY);
   const [videoLanguage, setVideoLanguage] = useState<'english' | 'hindi-urdu'>('english');
 
   // Fullscreen functionality
@@ -539,7 +541,9 @@ function App() {
     loadPDFFile();
   }, []);
 
-  const renderMainContent = () => {
+  const renderContent = () => {
+    // Persistent Assistant is handled by the wrapper
+    if (activeTab === 'assistant') return null;
     // Model Papers content is now independent of chapters
     if (activeTab === 'papers') {
       return (
@@ -770,10 +774,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">Ancient India - Practice Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">Ancient India quiz coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -791,8 +795,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">Ancient India - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -967,10 +970,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">India from 9th to 14th CE - Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">India from 9th to 14th CE quiz content coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -986,8 +989,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">India from 9th to 14th CE - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -1162,10 +1164,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">Mughal Emperors - Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">Mughal Emperors quiz content coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -1181,8 +1183,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">Mughal Emperors - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -1371,10 +1372,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">Modern India - Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">Modern India quiz content coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -1392,8 +1393,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">Modern India - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -1587,10 +1587,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">Telangana History and State Formation - Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">Telangana History and State Formation quiz content coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -1647,8 +1647,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">Telangana History and State Formation - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -1855,10 +1854,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">Our Universe - Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">Our Universe quiz content coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -1882,8 +1881,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">Our Universe - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -2081,10 +2079,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">All About Villages - Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">All About Villages quiz content coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -2100,8 +2098,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">All About Villages - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -2319,10 +2316,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">Physical Divisions Of India - Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">Physical Divisions Of India quiz content coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -2339,8 +2336,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">Physical Divisions Of India - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -2519,10 +2515,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">Natural Resources - Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">Natural Resources quiz content coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -2538,8 +2534,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">Natural Resources - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -2714,10 +2709,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">Indian Constitution - Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">Indian Constitution quiz content coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -2731,8 +2726,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">Indian Constitution - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -2900,10 +2894,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">Union and State Government - Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">Union and State Government quiz content coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -2917,8 +2911,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">Union and State Government - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -3096,10 +3089,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">Economic System - Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">Economic System quiz content coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -3116,8 +3109,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">Economic System - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -3172,10 +3164,10 @@ function App() {
             case 'quiz':
               return (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-amber-800 mb-4">{chapterName} - Practice Quiz</h2>
-                  <div className="bg-white rounded-lg p-6 shadow-md border border-stone-200">
-                    <p className="text-stone-700">{chapterName} quiz coming soon...</p>
-                  </div>
+                  <QuizGenerator apiKey={GROQ_API_KEY}
+                    currentChapter={getChapterDisplayName(activeChapter)}
+                    pdfFile={pdfFile}
+                  />
                 </div>
               );
             case 'simulator':
@@ -3192,8 +3184,7 @@ function App() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-blue-800 mb-4">{chapterName} - Learning Assistant</h2>
                   <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden">
-                    <PDFChatRAG
-                      apiKey={groqApiKey}
+                    <PDFChatRAG apiKey={GROQ_API_KEY}
                       currentChapter={getChapterDisplayName(activeChapter)}
                       pdfFile={pdfFile}
                       onPdfLoaded={setIsPdfLoaded}
@@ -3215,6 +3206,37 @@ function App() {
     };
 
     return getChapterContent();
+  };
+
+  const renderMainContent = () => {
+    return (
+      <div className="h-full flex flex-col relative bg-transparent">
+        {/* Persistent Assistant Component - Always mounted, hidden when inactive */}
+        <div
+          style={{
+            display: activeTab === 'assistant' ? 'block' : 'none',
+            height: '100%'
+          }}
+          className="h-full absolute inset-0 z-10 bg-gray-50"
+        >
+          <div className="space-y-6 h-full flex flex-col container mx-auto px-4 py-8">
+
+            <div className="bg-white rounded-lg shadow-md border border-stone-200 overflow-hidden flex-1 relative flex flex-col">
+              <PDFChatRAG apiKey={GROQ_API_KEY}
+                currentChapter={getChapterDisplayName(activeChapter)}
+                pdfFile={pdfFile}
+                onPdfLoaded={setIsPdfLoaded}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Other Tabs Content */}
+        <div style={{ display: activeTab !== 'assistant' ? 'block' : 'none' }}>
+          {renderContent()}
+        </div>
+      </div>
+    );
   };
 
 
@@ -3468,8 +3490,8 @@ function App() {
 
           {/* Main Content */}
           <div className="flex-1 overflow-y-auto scrollbar-hide min-h-0">
-            <div className="p-8">
-              <div>
+            <div className="p-8 h-full">
+              <div className="h-full">
                 {renderMainContent()}
               </div>
             </div>
