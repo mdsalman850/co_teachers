@@ -710,8 +710,8 @@ function App() {
               );
             case 'videos':
               const videoUrls = {
-                english: "https://www.youtube.com/embed/gX4x5G_eu1s?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=0&fs=1&cc_load_policy=0&iv_load_policy=3&autohide=0",
-                'hindi-urdu': "https://www.youtube.com/embed/zoFrcClKDCA?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=0&fs=1&cc_load_policy=0&iv_load_policy=3&autohide=0"
+                english: "https://www.youtube.com/embed/FpmfWYMFSW0?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=0&fs=1&cc_load_policy=0&iv_load_policy=3&autohide=0",
+                'hindi-urdu': "https://www.youtube.com/embed/b0MX-iM-ous?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=0&fs=1&cc_load_policy=0&iv_load_policy=3&autohide=0"
               };
 
               return (
